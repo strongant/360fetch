@@ -44,7 +44,7 @@ page.onError = function(msg, trace) {
   }
 
   console.error(msgStack.join('\n'));
-
+  writeLog(msgStack.join('\n'));
 };
 
 page.viewportSize = {

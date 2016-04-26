@@ -1,9 +1,34 @@
 var page = require("webpage").create();
 var fs = require("fs");
 var logName = "fetch.log"
-var accounts = {
-  account: "18215361994",
-  password: "baiwenhui1994"
+var accountPath = "account.json";
+var accounts = JSON.parse(fs.read(accountPath));
+
+//日期格式化
+var formatDate = function(fmt) {
+  var now = new Date();
+  var o = {
+    "M+": now.getMonth() + 1, //月份
+    "d+": now.getDate(), //日
+    "h+": now.getHours(), //小时
+    "m+": now.getMinutes(), //分
+    "s+": now.getSeconds(), //秒
+    "q+": Math.floor((now.getMonth() + 3) / 3), //季度
+    "S": now.getMilliseconds() //毫秒
+  };
+  if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (now.getFullYear() + "")
+    .substr(4 - RegExp.$1.length));
+  for (var k in o)
+    if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (
+      RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k])
+      .length)));
+  return fmt;
+};
+
+var writeLog = function(info) {
+  var currentDate = formatDate("yyyy-MM-dd hh:mm:ss.S");
+  info = currentDate + ":" + info + "\n";
+  fs.write(logName, info, 'a');
 };
 
 page.onError = function(msg, trace) {
@@ -36,23 +61,28 @@ var steps = [
       if (status !== 'success') {
         return
       }
-      console.log(fs.read('account.json'));
-      fs.write(logName, "访问360云盘成功", 'a');
+      writeLog("访问360云盘成功");
     });
   },
   // fill the form and submit
   function() {
-
+    //如果出现验证码则中断操作
+    if (document.getElementsByClassName('.quc-input-captcha').length ==
+      0) {
+      writeLog("出现验证码暂时不处理，后期进行处理");
+      console.log("出现验证码暂时不处理，后期进行处理");
+      phantom.exit();
+    }
     // capture before submit form
     page.render("first.jpg");
     console.log('generate  first.jpg');
-    fs.write(logName, "生成360云盘登陆页面图片", 'a');
+    writeLog("生成360云盘登陆页面图片");
     //page.switchToFrame("quc-form");
     setTimeout(function() {
       page.includeJs(
         'http://libs.baidu.com/jquery/2.0.0/jquery.js',
         function() {
-          fs.write(logName, "请求百度jquery cdn文件成功", 'a');
+          writeLog("请求百度jquery cdn文件成功");
           page.evaluate(function(data) {
             console.log('evaluate  come');
             var $loginForm = $('form.quc-form');
@@ -74,10 +104,12 @@ var steps = [
   function() {
     // capture after submit form
     setTimeout(function() {
-      page.render("second.jpg");
-      console.log('generate  second.jpg');
-      fs.write(logName, "进入用户首页页面并完成截图", 'a');
-    }, 5000);
+
+        page.render("second.jpg");
+        console.log('generate  second.jpg');
+        writeLog("进入用户首页页面并完成截图");
+      },
+      5000);
   },
   function() {
     setTimeout(function() {
@@ -89,11 +121,12 @@ var steps = [
 
   },
   function() {
+
     setTimeout(function() {
       //抽奖结果截图
       page.render("result.jpg");
       console.log('generate  result.jpg');
-      fs.write(logName, "抽奖完毕并完成截图", 'a');
+      writeLog("抽奖完毕并完成截图");
       phantom.exit();
     }, 3000);
   }

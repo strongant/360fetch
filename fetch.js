@@ -138,9 +138,6 @@ var steps = [
 var i = 0,
   loading = false;
 
-//测试5小时后抽奖
-var delay = 1000 * 60 * 10;
-
 
 setInterval(function() {
   if (!loading && typeof steps[i] == "function") {

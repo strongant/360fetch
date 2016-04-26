@@ -126,6 +126,10 @@ var steps = [
       //抽奖结果截图
       page.render("result.jpg");
       console.log('generate  result.jpg');
+      //记录抽奖信息
+      var loterryMsg = document.getElementsByClassName('content0')[0].innerHTML
+        .replace(/<.+?>/gim, '');
+      writeLog("抽奖信息:" + loterryMsg);
       writeLog("抽奖完毕并完成截图");
       phantom.exit();
     }, 3000);
